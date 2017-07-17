@@ -1,16 +1,19 @@
+import edu.princeton.cs.algs4.MinPQ;
+
 /**
  * Created by orps on 14.07.17.
  */
 public class Solver {
 
-    private Board board;
+    private MinPQ<Board> pQueue;
+
+
 
     public Solver(Board initial) {
         if (initial == null) {
             throw new java.lang.IllegalArgumentException();
         }
-
-        board = initial;
+        //MinPQ<>
     }
 
     public boolean isSolvable() {
@@ -22,7 +25,7 @@ public class Solver {
     }
 
     public Iterable<Board> solution() {
-        return board.neighbors();
+        //return board.neighbors();
     }
 
     public static void main(String[] args) {

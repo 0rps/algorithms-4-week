@@ -7,8 +7,6 @@ public class Solver {
 
     private MinPQ<Board> pQueue;
 
-
-
     public Solver(Board initial) {
         if (initial == null) {
             throw new java.lang.IllegalArgumentException();

@@ -96,8 +96,6 @@ public class Board {
     }
 
     public Iterable<Board> neighbors() {
-        int iDelta = -1;
-
         ArrayList<Board> boardArray = new ArrayList<Board>(4);
         int length = dimension();
 

@@ -78,7 +78,7 @@ public class Solver {
         if (initial == null) {
             throw new java.lang.IllegalArgumentException();
         }
-        openSet = new MinPQ<>(new HammingComparator());
+        openSet = new MinPQ<>(new ManhattanComparator());
         openSet.insert(new BoardKey(initial, 0));
         closedSet = new ArrayList<>();
 
@@ -92,9 +92,6 @@ public class Solver {
         while(openSet.size() != 0) {
             BoardKey current = openSet.delMin();
             Board currentBoard = current.board();
-            closedSet.add(current);
-
-            //StdOut.println(current.hamming());
 
             Iterator<Board> neighbourIterator = currentBoard.neighbors().iterator();
             //StdOut.println("Current");
@@ -117,14 +114,6 @@ public class Solver {
                         break;
                     }
                     openSet.insert(neighbourKey);
-                //}
-                } else {
-                    neighbourKey = getFromOpenSet(neighbourBoard);
-                    if (neighbourKey.step() > current.step()+1) {
-                        //StdOut.println("asdf");
-                        neighbourKey.setStep(current.step() + 1);
-                        neighbourKey.setPreviousBoard( current );
-                    }
                 }
             }
         }

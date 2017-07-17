@@ -1,3 +1,6 @@
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
+
 import java.util.ArrayList;
 
 /**
@@ -35,14 +38,17 @@ public class Board {
                     mustValue = 0;
                 }
 
+                //StdOut.println(data[i][j] + ", " +  mustValue);
+
                 if (data[i][j] != mustValue && data[i][j] != 0) {
                     hammingLength++;
                 }
 
                 if (data[i][j] != mustValue && data[i][j] != 0) {
-                    int iMust = data[i][j] / rank;
-                    int jMust = data[i][j] % rank;
+                    int iMust = (data[i][j] - 1) / rank;
+                    int jMust = (data[i][j] - 1) % rank;
                     manhattanLength += Math.abs(i - iMust) + Math.abs(j - jMust);
+                    //StdOut.println(data[i][j] + ": " + (Math.abs(i - iMust) + Math.abs(j - jMust)) + ", must: " + iMust + ", " + jMust);
                 }
 
                 if (blocks[i][j] == 0) {
@@ -52,6 +58,8 @@ public class Board {
 
             }
         }
+
+        //StdOut.println();
     }
 
     public int dimension() {
@@ -62,12 +70,10 @@ public class Board {
 
     public int manhattan() { return manhattanLength; }
 
-    public boolean isGoal()  { return hammingLength > 0; }
+    public boolean isGoal()  { return hammingLength == 0; }
 
     public Board twin() {
         Board board = new Board(data);
-        board.iZero = iZero;
-        board.jZero = jZero;
         return board;
     }
 
@@ -95,30 +101,27 @@ public class Board {
         ArrayList<Board> boardArray = new ArrayList<Board>(4);
         int length = dimension();
 
-        for (int i = 0; i < 3; i++) {
-            int jDelta = -2;
-            for (int j = 0; j < 3; j++) {
-                jDelta++;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
                 if (Math.abs(i) + Math.abs(j) != 1)
                     continue;
 
-                int newIZero = iZero + iDelta;
-                int newJZero = jZero + jDelta;
+                int newIZero = iZero + i;
+                int newJZero = jZero + j;
 
-                if (newIZero < 0 || newIZero >= length || newJZero < 0 || newJZero >= length) {
+                if (newIZero >= 0 && newIZero < length && newJZero >= 0 && newJZero < length) {
 
                     data[iZero][jZero] = data[newIZero][newJZero];
                     data[newIZero][newJZero] = 0;
 
-                    Board board = this.twin();
+                    boardArray.add(this.twin());
 
                     data[newIZero][newJZero] = data[iZero][jZero];
                     data[iZero][jZero] = 0;
 
-                    boardArray.add(board);
+
                 }
             }
-            iDelta++;
         }
 
         return boardArray;
@@ -140,17 +143,37 @@ public class Board {
         String format = "%" + space + "d";
 
         String result = new String();
+        result += "\n---------------------\n";
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 result += String.format(format, data[i][j]) + " ";
             }
             result += "\n";
         }
+        result += "---------------------\n";
 
         return result;
     }
 
     public static void main(String[] args) {
+        for (String filename : args) {
 
+            // read in the board specified in the filename
+            In in = new In(filename);
+            int n = in.readInt();
+            int[][] tiles = new int[n][n];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    tiles[i][j] = in.readInt();
+                }
+            }
+
+            // solve the slider puzzle
+            Board initial = new Board(tiles);
+            StdOut.println(filename + ": " + initial + initial.neighbors());
+            StdOut.println(initial.hamming());
+            StdOut.println(initial.manhattan());
+
+        }
     }
 }

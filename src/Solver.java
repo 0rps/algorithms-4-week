@@ -1,4 +1,5 @@
 import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,9 +61,9 @@ public class Solver {
         public int step() { return this.step; }
         public void setStep(int newStep) { this.step = newStep; }
 
-        public int manhattan() { return privateBoard.manhattan(); }
+        public int manhattan() { return privateBoard.manhattan() + step; }
 
-        public int hamming() { return privateBoard.hamming(); }
+        public int hamming() { return privateBoard.hamming() + step; }
 
     }
 
@@ -81,12 +82,23 @@ public class Solver {
         openSet.insert(new BoardKey(initial, 0));
         closedSet = new ArrayList<>();
 
+//        BoardKey k = new BoardKey(initial.neighbors().iterator().next(), 0);
+//        openSet.insert(k);
+//
+//        StdOut.println(openSet.delMin().board().hamming());
+//        StdOut.println(openSet.delMin().board().hamming());
+//        return;
+
         while(openSet.size() != 0) {
             BoardKey current = openSet.delMin();
             Board currentBoard = current.board();
             closedSet.add(current);
 
+            //StdOut.println(current.hamming());
+
             Iterator<Board> neighbourIterator = currentBoard.neighbors().iterator();
+            //StdOut.println("Current");
+            //StdOut.println(currentBoard);
             while(neighbourIterator.hasNext()) {
                 Board neighbourBoard = neighbourIterator.next();
 
@@ -94,19 +106,23 @@ public class Solver {
                     continue;
                 }
 
+                //StdOut.println(neighbourBoard);
+
                 BoardKey neighbourKey;
 
                 if ( !inOpenSet(neighbourBoard) ) {
-                    neighbourKey = new BoardKey(neighbourBoard, current.step() +1, current);
+                    neighbourKey = new BoardKey(neighbourBoard, current.step() + 1, current);
                     if (neighbourKey.board().isGoal()) {
                         goal = neighbourKey;
                         break;
                     }
                     openSet.insert(neighbourKey);
+                //}
                 } else {
                     neighbourKey = getFromOpenSet(neighbourBoard);
                     if (neighbourKey.step() > current.step()+1) {
-                        neighbourKey.setStep(current.step + 1);
+                        //StdOut.println("asdf");
+                        neighbourKey.setStep(current.step() + 1);
                         neighbourKey.setPreviousBoard( current );
                     }
                 }

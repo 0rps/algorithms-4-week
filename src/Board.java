@@ -8,6 +8,8 @@ public class Board {
     private final int[][] data;
     private int iZero;
     private int jZero;
+    private int manhattanLength = 0;
+    private int hammingLength = 0;
 
 
     public Board(int[][] blocks) {
@@ -23,13 +25,35 @@ public class Board {
         }
 
         data = new int[blocks.length][];
+        int mustValue = 0;
         for (int i = 0; i < rank; i++) {
             data[i] = blocks[i].clone();
             for (int j = 0; j < rank; j++) {
+                mustValue++;
+
+                if (i == rank-1 && j == rank-1) {
+                    mustValue = 0;
+                }
+
+                if (data[i][j] != mustValue) {
+                    hammingLength++;
+                }
+
+                if (data[i][j] != mustValue) {
+                    int iMust = data[i][j] / rank;
+                    int jMust = data[i][j] % rank;
+                    if (data[i][j] == 0) {
+                        iMust = rank - 1;
+                        jMust = rank - 1;
+                    }
+                    manhattanLength += Math.abs(i - iMust) + Math.abs(j - jMust);
+                }
+
                 if (blocks[i][j] == 0) {
                     iZero = i;
                     jZero = j;
                 }
+
             }
         }
     }
@@ -38,67 +62,11 @@ public class Board {
         return data.length;
     }
 
-    public int hamming() {
-        int result = 0;
+    public int hamming() { return hammingLength; }
 
-        final int length = dimension();
-        int mustValue = 0;
-        for (int i = 0; i < length; i++) {
-            for (int j = 0; j < length; j++) {
-                mustValue++;
-                if (i == length-1 && j == length-1) {
-                    mustValue = 0;
-                }
-                if (data[i][j] != mustValue) {
-                    result++;
-                }
-            }
-        }
-        return result;
-    }
+    public int manhattan() { return manhattanLength; }
 
-    public int manhattan() {
-        int result = 0;
-
-        final int length = dimension();
-        int mustValue = 0;
-        for (int i = 0; i < length; i++) {
-            for (int j = 0; j < length; j++) {
-                mustValue++;
-                if (i == length-1 && j == length-1) {
-                    mustValue = 0;
-                }
-
-                if (data[i][j] != mustValue) {
-                    int iMust = data[i][j] / length;
-                    int jMust = data[i][j] % length;
-                    if (data[i][j] == 0) {
-                        iMust = length-1;
-                        jMust = length-1;
-                    }
-                    result += Math.abs(i - iMust) + Math.abs(j - jMust);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public boolean isGoal()  {
-        final int length = dimension();
-        for (int i = 0; i < length; i++) {
-            for (int j = 0; j < length; j++) {
-                int mustValue = i * length + j + 1;
-                if (i == length-1 && j == length-1) {
-                    mustValue = 0;
-                }
-                if (data[i][j] != mustValue) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    public boolean isGoal()  { return hammingLength > 0; }
 
     public Board twin() {
         Board board = new Board(data);
@@ -142,9 +110,15 @@ public class Board {
                 int newJZero = jZero + jDelta;
 
                 if (newIZero < 0 || newIZero >= length || newJZero < 0 || newJZero >= length) {
+                    
+                    data[iZero][jZero] = data[newIZero][newJZero];
+                    data[newIZero][newJZero] = 0;
+
                     Board board = this.twin();
-                    board.data[iZero][jZero] = board.data[newIZero][newJZero];
-                    board.data[newIZero][newJZero] = 0;
+
+                    data[newIZero][newJZero] = data[iZero][jZero];
+                    data[iZero][jZero] = 0;
+
                     boardArray.add(board);
                 }
             }

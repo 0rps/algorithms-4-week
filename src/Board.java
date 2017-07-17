@@ -35,17 +35,13 @@ public class Board {
                     mustValue = 0;
                 }
 
-                if (data[i][j] != mustValue) {
+                if (data[i][j] != mustValue && data[i][j] != 0) {
                     hammingLength++;
                 }
 
-                if (data[i][j] != mustValue) {
+                if (data[i][j] != mustValue && data[i][j] != 0) {
                     int iMust = data[i][j] / rank;
                     int jMust = data[i][j] % rank;
-                    if (data[i][j] == 0) {
-                        iMust = rank - 1;
-                        jMust = rank - 1;
-                    }
                     manhattanLength += Math.abs(i - iMust) + Math.abs(j - jMust);
                 }
 
@@ -110,7 +106,7 @@ public class Board {
                 int newJZero = jZero + jDelta;
 
                 if (newIZero < 0 || newIZero >= length || newJZero < 0 || newJZero >= length) {
-                    
+
                     data[iZero][jZero] = data[newIZero][newJZero];
                     data[newIZero][newJZero] = 0;
 

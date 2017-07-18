@@ -1,4 +1,6 @@
+import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.StdOut;
 // import edu.princeton.cs.algs4.StdOut;
 
 import java.util.*;
@@ -196,6 +198,7 @@ public class Solver {
         } else if (initialGame.isUnsolvable() || twinGame.hasGoal()) {
             return;
         } else {
+            StdOut.println("twin is unsolvable");
             while(initialGame.next());
             solution = initialGame.solution();
         }
@@ -210,30 +213,29 @@ public class Solver {
     }
 
     public static void main(String[] args) {
+        for (String filename : args) {
+            // read in the board specified in the filename
+            In in = new In(filename);
+            int n = in.readInt();
+            int[][] tiles = new int[n][n];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    tiles[i][j] = in.readInt();
+                }
+            }
 
+            // solve the slider puzzle
+            Board initial = new Board(tiles);
+            Solver solver = new Solver(initial);
+            if (solver.isSolvable()) {
+                StdOut.println("Minimum number of moves = " + solver.moves() + "\n");
+                Iterator<Board> solution = solver.solution().iterator();
+                while (solution.hasNext()) {
+                    StdOut.println(solution.next());
+                }
+            } else {
+                StdOut.println("No solution possible");
+            }
+        }
     }
-
-
-//
-//    private boolean inClosedSet(BoardKey key) {
-//        return inClosedSet(key.board());
-//    }
-//
-//    private boolean inOpenSet(BoardKey key) {
-//        return inOpenSet(key.board());
-//    }
-
-
-//
-//    private boolean inOpenSet(Board key) {
-//        Iterator<BoardKey> iterator = openSet.iterator();
-//        while(iterator.hasNext()) {
-//            BoardKey next = iterator.next();
-//            if (next.board().equals(key)) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
 }

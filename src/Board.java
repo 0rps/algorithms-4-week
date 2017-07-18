@@ -1,5 +1,5 @@
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdOut;
+// import edu.princeton.cs.algs4.In;
+// import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
 
@@ -82,7 +82,7 @@ public class Board {
 
             result = new Board(data);
 
-            data[0][1] = data[1][0];
+            data[0][1] = data[0][0];
             data[0][0] = a;
 
         } else {
@@ -153,22 +153,18 @@ public class Board {
         int space;
         if (dSquare > 99) {
             space = 3;
-        } else if (dSquare > 9) {
-            space = 2;
         } else {
-            space = 1;
+            space = 2;
         }
         String format = "%" + space + "d";
 
-        String result = new String();
-        result += "---------------------\n";
+        String result = "" + length + "\n";
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 result += String.format(format, data[i][j]) + " ";
             }
             result += "\n";
         }
-        result += "---------------------";
 
         return result;
     }

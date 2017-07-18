@@ -1,20 +1,17 @@
 import edu.princeton.cs.algs4.MinPQ;
-import edu.princeton.cs.algs4.StdOut;
+// import edu.princeton.cs.algs4.StdOut;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Created by orps on 14.07.17.
  */
 public class Solver {
 
-    class ManhattanComparator implements Comparator<BoardKey> {
+    class ManhattanComparator implements Comparator<TreeNode> {
 
         @Override
-        public int compare(BoardKey a, BoardKey b) {
+        public int compare(TreeNode a, TreeNode b) {
             int aKey = a.manhattan();
             int bKey = b.manhattan();
             if (aKey < bKey)       return -1;
@@ -23,10 +20,10 @@ public class Solver {
         }
     }
 
-    class HammingComparator implements Comparator<BoardKey> {
+    class HammingComparator implements Comparator<TreeNode> {
 
         @Override
-        public int compare(BoardKey a, BoardKey b) {
+        public int compare(TreeNode a, TreeNode b) {
             int aKey = a.hamming();
             int bKey = b.hamming();
             if (aKey < bKey)       return -1;
@@ -35,74 +32,63 @@ public class Solver {
         }
     }
 
-    class BoardKey {
+    private class TreeNode {
 
-        private Board privateBoard;
-        private int step;
-        private BoardKey previous;
+        private Board board;
+        private int height;
+        private TreeNode parent;
 
-        public BoardKey(Board b, int s) {
-            this.privateBoard = b;
-            this.step = s;
-            this.previous = null;
+        public TreeNode(Board board, int height) {
+            this.board = board;
+            this.height = height;
+            this.parent = null;
         }
 
-        public BoardKey(Board b, int s, BoardKey p) {
-            this.previous = p;
-            this.privateBoard = b;
-            this.step = s;
+        public TreeNode(Board board, int height, TreeNode parent) {
+            this.parent = parent;
+            this.board = board;
+            this.height = height;
         }
 
-        public Board board() { return privateBoard; }
+        public Board board() { return board; }
 
-        public BoardKey previousBoard() { return previous; }
-        public void setPreviousBoard(BoardKey p) { previous = p;}
+        public TreeNode parent() { return parent; }
 
-        public int step() { return this.step; }
-        public void setStep(int newStep) { this.step = newStep; }
+        public int height() { return this.height; }
 
-        public int manhattan() { return privateBoard.manhattan() + step; }
+        public int manhattan() { return board.manhattan() + height; }
 
-        public int hamming() { return privateBoard.hamming() + step; }
+        public int hamming() { return board.hamming() + height; }
 
     }
 
-    private MinPQ<BoardKey> openSet;
-    private ArrayList<BoardKey> closedSet;
-    private int movesCount = 0;
-    private boolean isSolvable = true;
-    private BoardKey goal;
-    private ArrayList<Board> solution;
+    private class GameTree {
 
-    public Solver(Board initial) {
-        if (initial == null) {
-            throw new java.lang.IllegalArgumentException();
+        private HashMap<Integer, List<Board>> closedSet = new HashMap<>();
+        private MinPQ<TreeNode> openSet;
+
+        private ArrayList<Board> solution = new ArrayList<>();
+
+        public GameTree(Board initial, Comparator<TreeNode> cmp) {
+            openSet = new MinPQ<TreeNode>(cmp);
+            openSet.insert(new TreeNode(initial, 0));
+
+            if (initial.isGoal()) {
+                makeSolution(openSet.delMin());
+            }
         }
-        openSet = new MinPQ<>(new ManhattanComparator());
-        openSet.insert(new BoardKey(initial, 0));
-        closedSet = new ArrayList<>();
 
-//        BoardKey k = new BoardKey(initial.neighbors().iterator().next(), 0);
-//        openSet.insert(k);
-//
-//        StdOut.println(openSet.delMin().board().hamming());
-//        StdOut.println(openSet.delMin().board().hamming());
-//        return;
+        public boolean next() {
+            if (hasGoal()) { return false;}
 
-        // Board previousBoard = null;
-        if (openSet.min().board().isGoal()) {
-            goal = openSet.min();
-        }
-        while(openSet.size() != 0 && goal == null) {
-            BoardKey current = openSet.delMin();
-            Board currentBoard = current.board();
+            if (openSet.isEmpty()) { return false; }
+
+            TreeNode currentNode = openSet.delMin();
+            Board currentBoard = currentNode.board();
+            addToClosedSet(currentBoard);
 
             Iterator<Board> neighbourIterator = currentBoard.neighbors().iterator();
-            //StdOut.println("");
-            //StdOut.println("Current: " + currentBoard);
-            //StdOut.println("length: " + current.manhattan());
-            //StdOut.println("------------------");
-            int i = 0;
+
             while(neighbourIterator.hasNext()) {
                 Board neighbourBoard = neighbourIterator.next();
                 //StdOut.println("Candidate: \n" + neighbourBoard);
@@ -111,46 +97,113 @@ public class Solver {
                     continue;
                 }
 
-                BoardKey neighbourKey = new BoardKey(neighbourBoard, current.step() + 1, current);
-                BoardKey addedBoardKey = getFromOpenSet(neighbourBoard);
+                TreeNode neighbourNode = new TreeNode(neighbourBoard, currentNode.height() + 1, currentNode);
+                TreeNode addedBoardKey = getFromOpenSet(neighbourBoard);
 
                 if ( addedBoardKey == null ) {
-                    if (neighbourKey.board().isGoal()) {
-                        //StdOut.println("GOOOOAAAALl\n");
-                        goal = neighbourKey;
-                        break;
+                    if (neighbourNode.board().isGoal()) {
+                        makeSolution(neighbourNode);
+                        return false;
                     }
-                    openSet.insert(neighbourKey);
-                    //StdOut.println("Added\n");
-                } else if (addedBoardKey.step() > neighbourKey.step()) {
-                    //StdOut.println("added as copy with little metric \n");
-                    openSet.insert(neighbourKey);
-                } else {
-                    //StdOut.println("Candidate has too mush metric\n");
+                    openSet.insert(neighbourNode);
+                } else if (addedBoardKey.height() > neighbourNode.height()) {
+                    openSet.insert(neighbourNode);
                 }
             }
+
+            return true;
         }
 
-        if (goal == null) {
-            isSolvable = false;
+        public boolean hasGoal() {
+            return solution.size() > 0;
+        }
+
+        public boolean isUnsolvable() {
+            return openSet.isEmpty() && !hasGoal();
+        }
+
+        public ArrayList<Board> solution() {
+            return (ArrayList<Board>)solution.clone();
+        }
+
+        private void makeSolution(TreeNode leaf) {
+            if (leaf == null) {
+                return;
+            }
+
+            while(leaf != null) {
+                solution.add(leaf.board());
+                leaf = leaf.parent();
+            }
+            Collections.reverse(solution);
+        }
+
+        void addToClosedSet(Board key) {
+            List<Board> list = closedSet.get(key.manhattan());
+            if (list == null) {
+                list = new ArrayList<>();
+                closedSet.put(key.manhattan(), list);
+            }
+
+            list.add(key);
+        }
+
+        private boolean inClosedSet(Board key) {
+            List<Board> list = closedSet.get(key.manhattan());
+            if (list == null) {
+                return false;
+            }
+
+            Iterator<Board> iterator = list.iterator();
+            while(iterator.hasNext()) {
+                if (iterator.next().equals(key)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        TreeNode getFromOpenSet(Board key) {
+            Iterator<TreeNode> iterator = openSet.iterator();
+            while(iterator.hasNext()) {
+                TreeNode next = iterator.next();
+                if (next.board().equals(key)) {
+                    return next;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private ArrayList<Board> solution = new ArrayList<>();
+
+    public Solver(Board initial) {
+        if (initial == null) {
+            throw new java.lang.IllegalArgumentException();
+        }
+
+        Comparator<TreeNode> cmp = new ManhattanComparator();
+
+        GameTree initialGame = new GameTree(initial, cmp);
+        GameTree twinGame = new GameTree(initial.twinSwap(), cmp);
+
+        while (initialGame.next() && twinGame.next());
+
+        if (initialGame.hasGoal()) {
+            solution = initialGame.solution();
+        } else if (initialGame.isUnsolvable() || twinGame.hasGoal()) {
             return;
+        } else {
+            while(initialGame.next());
+            solution = initialGame.solution();
         }
-
-        movesCount = goal.step();
-        solution = new ArrayList<>();
-        BoardKey currentKey = goal;
-        while(currentKey != null) {
-            solution.add(currentKey.board());
-            currentKey = currentKey.previousBoard();
-        }
-        Collections.reverse(solution);
     }
 
-    public boolean isSolvable() { return isSolvable; }
+    public boolean isSolvable() { return solution.size() > 0; }
 
-    public int moves() {
-        return movesCount;
-    }
+    public int moves() { return solution.size() - 1; }
 
     public Iterable<Board> solution() {
         return (Iterable<Board>)solution.clone();
@@ -160,47 +213,27 @@ public class Solver {
 
     }
 
-    BoardKey getFromOpenSet(Board key) {
-        Iterator<BoardKey> iterator = openSet.iterator();
-        while(iterator.hasNext()) {
-            BoardKey next = iterator.next();
-            if (next.board().equals(key)) {
-                return next;
-            }
-        }
 
-        return null;
-    }
+//
+//    private boolean inClosedSet(BoardKey key) {
+//        return inClosedSet(key.board());
+//    }
+//
+//    private boolean inOpenSet(BoardKey key) {
+//        return inOpenSet(key.board());
+//    }
 
-    private boolean inClosedSet(BoardKey key) {
-        return inClosedSet(key.board());
-    }
 
-    private boolean inOpenSet(BoardKey key) {
-        return inOpenSet(key.board());
-    }
-
-    private boolean inClosedSet(Board key) {
-        Iterator<BoardKey> iterator = closedSet.iterator();
-        while(iterator.hasNext()) {
-            BoardKey next = iterator.next();
-            if (next.board().equals(key)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean inOpenSet(Board key) {
-        Iterator<BoardKey> iterator = openSet.iterator();
-        while(iterator.hasNext()) {
-            BoardKey next = iterator.next();
-            if (next.board().equals(key)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+//
+//    private boolean inOpenSet(Board key) {
+//        Iterator<BoardKey> iterator = openSet.iterator();
+//        while(iterator.hasNext()) {
+//            BoardKey next = iterator.next();
+//            if (next.board().equals(key)) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
 }

@@ -38,8 +38,6 @@ public class Board {
                     mustValue = 0;
                 }
 
-                //StdOut.println(data[i][j] + ", " +  mustValue);
-
                 if (data[i][j] != mustValue && data[i][j] != 0) {
                     hammingLength++;
                 }
@@ -48,7 +46,6 @@ public class Board {
                     int iMust = (data[i][j] - 1) / rank;
                     int jMust = (data[i][j] - 1) % rank;
                     manhattanLength += Math.abs(i - iMust) + Math.abs(j - jMust);
-                    //StdOut.println(data[i][j] + ": " + (Math.abs(i - iMust) + Math.abs(j - jMust)) + ", must: " + iMust + ", " + jMust);
                 }
 
                 if (blocks[i][j] == 0) {
@@ -58,8 +55,6 @@ public class Board {
 
             }
         }
-
-        //StdOut.println();
     }
 
     public int dimension() {
@@ -73,17 +68,42 @@ public class Board {
     public boolean isGoal()  { return hammingLength == 0; }
 
     public Board twin() {
-        Board board = new Board(data);
-        return board;
+        return new Board(data);
+    }
+
+    public Board twinSwap() {
+
+        Board result;
+
+        if (iZero != 0) {
+            int a = data[0][0];
+            data[0][0] = data[0][1];
+            data[0][1] = a;
+
+            result = new Board(data);
+
+            data[0][1] = data[1][0];
+            data[0][0] = a;
+
+        } else {
+            int a = data[1][0];
+            data[1][0] = data[1][1];
+            data[1][1] = a;
+
+            result = new Board(data);
+
+            data[1][1] = data[1][0];
+            data[1][0] = a;
+        }
+        return result;
     }
 
     public boolean equals(Object y) {
         Board board = (Board)y;
-        if (board.dimension() != this.dimension()) {
+        final int length = dimension();
+        if (length != board.dimension() && this.manhattanLength != board.manhattanLength) {
             return false;
         }
-
-        final int length = dimension();
 
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
@@ -153,25 +173,25 @@ public class Board {
         return result;
     }
 
-    public static void main(String[] args) {
-        for (String filename : args) {
-
-            // read in the board specified in the filename
-            In in = new In(filename);
-            int n = in.readInt();
-            int[][] tiles = new int[n][n];
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < n; j++) {
-                    tiles[i][j] = in.readInt();
-                }
-            }
-
-            // solve the slider puzzle
-            Board initial = new Board(tiles);
-            StdOut.println(filename + ": " + initial + initial.neighbors());
-            StdOut.println(initial.hamming());
-            StdOut.println(initial.manhattan());
-
-        }
-    }
+//    public static void main(String[] args) {
+//        for (String filename : args) {
+//
+//            // read in the board specified in the filename
+//            In in = new In(filename);
+//            int n = in.readInt();
+//            int[][] tiles = new int[n][n];
+//            for (int i = 0; i < n; i++) {
+//                for (int j = 0; j < n; j++) {
+//                    tiles[i][j] = in.readInt();
+//                }
+//            }
+//
+//            // solve the slider puzzle
+//            Board initial = new Board(tiles);
+//            StdOut.println(filename + ": " + initial + initial.neighbors());
+//            StdOut.println(initial.hamming());
+//            StdOut.println(initial.manhattan());
+//
+//        }
+//    }
 }

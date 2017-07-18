@@ -89,33 +89,51 @@ public class Solver {
 //        StdOut.println(openSet.delMin().board().hamming());
 //        return;
 
-        while(openSet.size() != 0) {
+        // Board previousBoard = null;
+        if (openSet.min().board().isGoal()) {
+            goal = openSet.min();
+        }
+        while(openSet.size() != 0 && goal == null) {
             BoardKey current = openSet.delMin();
             Board currentBoard = current.board();
 
             Iterator<Board> neighbourIterator = currentBoard.neighbors().iterator();
-            //StdOut.println("Current");
-            //StdOut.println(currentBoard);
+            //StdOut.println("");
+            //StdOut.println("Current: " + currentBoard);
+            //StdOut.println("length: " + current.manhattan());
+            //StdOut.println("------------------");
+            int i = 0;
             while(neighbourIterator.hasNext()) {
                 Board neighbourBoard = neighbourIterator.next();
-
+                //StdOut.println("Candidate: \n" + neighbourBoard);
                 if ( inClosedSet(neighbourBoard) ) {
+                    //StdOut.println("Candidate alredy in closed\n");
                     continue;
                 }
 
-                //StdOut.println(neighbourBoard);
+                BoardKey neighbourKey = new BoardKey(neighbourBoard, current.step() + 1, current);
+                BoardKey addedBoardKey = getFromOpenSet(neighbourBoard);
 
-                BoardKey neighbourKey;
-
-                if ( !inOpenSet(neighbourBoard) ) {
-                    neighbourKey = new BoardKey(neighbourBoard, current.step() + 1, current);
+                if ( addedBoardKey == null ) {
                     if (neighbourKey.board().isGoal()) {
+                        //StdOut.println("GOOOOAAAALl\n");
                         goal = neighbourKey;
                         break;
                     }
                     openSet.insert(neighbourKey);
+                    //StdOut.println("Added\n");
+                } else if (addedBoardKey.step() > neighbourKey.step()) {
+                    //StdOut.println("added as copy with little metric \n");
+                    openSet.insert(neighbourKey);
+                } else {
+                    //StdOut.println("Candidate has too mush metric\n");
                 }
             }
+        }
+
+        if (goal == null) {
+            isSolvable = false;
+            return;
         }
 
         movesCount = goal.step();

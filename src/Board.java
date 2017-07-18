@@ -141,14 +141,14 @@ public class Board {
         String format = "%" + space + "d";
 
         String result = new String();
-        result += "\n---------------------\n";
+        result += "---------------------\n";
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 result += String.format(format, data[i][j]) + " ";
             }
             result += "\n";
         }
-        result += "---------------------\n";
+        result += "---------------------";
 
         return result;
     }

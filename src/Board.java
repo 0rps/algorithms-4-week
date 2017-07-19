@@ -11,8 +11,8 @@ public class Board {
     private final int[][] data;
     private int iZero;
     private int jZero;
-    private int manhattanLength = 0;
-    private int hammingLength = 0;
+    private final int manhattanLength;
+    private final int hammingLength;
 
 
     public Board(int[][] blocks) {
@@ -29,6 +29,8 @@ public class Board {
 
         data = new int[blocks.length][];
         int mustValue = 0;
+        int ml = 0;
+        int hl = 0;
         for (int i = 0; i < rank; i++) {
             data[i] = blocks[i].clone();
             for (int j = 0; j < rank; j++) {
@@ -39,13 +41,13 @@ public class Board {
                 }
 
                 if (data[i][j] != mustValue && data[i][j] != 0) {
-                    hammingLength++;
+                    hl++;
                 }
 
                 if (data[i][j] != mustValue && data[i][j] != 0) {
                     int iMust = (data[i][j] - 1) / rank;
                     int jMust = (data[i][j] - 1) % rank;
-                    manhattanLength += Math.abs(i - iMust) + Math.abs(j - jMust);
+                    ml += Math.abs(i - iMust) + Math.abs(j - jMust);
                 }
 
                 if (blocks[i][j] == 0) {
@@ -55,6 +57,8 @@ public class Board {
 
             }
         }
+        hammingLength = hl;
+        manhattanLength = ml;
     }
 
     public int dimension() {
@@ -94,7 +98,11 @@ public class Board {
     }
 
     public boolean equals(Object y) {
-        Board board = (Board)y;
+        if (y == null) { return false; }
+
+        if (!(y instanceof Board)) { return false; }
+
+        Board board = (Board) y;
         final int length = dimension();
         if (length != board.dimension() && this.manhattanLength != board.manhattanLength) {
             return false;
@@ -152,37 +160,15 @@ public class Board {
             space = 2;
         }
         String format = "%" + space + "d";
-
-        String result = "" + length + "\n";
+        StringBuilder builder = new StringBuilder();
+        builder.append("" + length + "\n");
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
-                result += String.format(format, data[i][j]) + " ";
+                builder.append(String.format(format, data[i][j]) + " ");
             }
-            result += "\n";
+            builder.append("\n");
         }
 
-        return result;
+        return builder.toString();
     }
-
-//    public static void main(String[] args) {
-//        for (String filename : args) {
-//
-//            // read in the board specified in the filename
-//            In in = new In(filename);
-//            int n = in.readInt();
-//            int[][] tiles = new int[n][n];
-//            for (int i = 0; i < n; i++) {
-//                for (int j = 0; j < n; j++) {
-//                    tiles[i][j] = in.readInt();
-//                }
-//            }
-//
-//            // solve the slider puzzle
-//            Board initial = new Board(tiles);
-//            StdOut.println(filename + ": " + initial + initial.neighbors());
-//            StdOut.println(initial.hamming());
-//            StdOut.println(initial.manhattan());
-//
-//        }
-//    }
 }

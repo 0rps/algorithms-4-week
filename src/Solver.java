@@ -22,17 +22,17 @@ public class Solver {
         }
     }
 
-    private class HammingComparator implements Comparator<TreeNode> {
-
-        @Override
-        public int compare(TreeNode a, TreeNode b) {
-            int aKey = a.hamming();
-            int bKey = b.hamming();
-            if (aKey < bKey)       return -1;
-            else if (bKey < aKey)  return 1;
-            else                   return 0;
-        }
-    }
+//    private class HammingComparator implements Comparator<TreeNode> {
+//
+//        @Override
+//        public int compare(TreeNode a, TreeNode b) {
+//            int aKey = a.hamming();
+//            int bKey = b.hamming();
+//            if (aKey < bKey)       return -1;
+//            else if (bKey < aKey)  return 1;
+//            else                   return 0;
+//        }
+//    }
 
     private class TreeNode {
 
@@ -60,7 +60,7 @@ public class Solver {
 
         public int manhattan() { return board.manhattan() + height; }
 
-        public int hamming() { return board.hamming() + height; }
+        // public int hamming() { return board.hamming() + height; }
 
     }
 
@@ -117,14 +117,13 @@ public class Solver {
         }
 
         public boolean hasGoal() {
-            return solution.size() > 0;
+            return !solution.isEmpty();
         }
 
         public boolean isUnsolvable() {
             return openSet.isEmpty() && !hasGoal();
         }
 
-        @SuppressWarnings("unchecked")
         public ArrayList<Board> solution() {
             return (ArrayList<Board>)solution.clone();
         }
@@ -199,17 +198,16 @@ public class Solver {
         } else if (initialGame.isUnsolvable() || twinGame.hasGoal()) {
 
         } else {
-            StdOut.println("twin is unsolvable");
+            // StdOut.println("twin is unsolvable");
             while (initialGame.next());
             solution = initialGame.solution();
         }
     }
 
-    public boolean isSolvable() { return solution.size() > 0; }
+    public boolean isSolvable() { return !solution.isEmpty(); }
 
     public int moves() { return solution.size() - 1; }
 
-    @SuppressWarnings("unchecked")
     public Iterable<Board> solution() {
         return (Iterable<Board>)solution.clone();
     }

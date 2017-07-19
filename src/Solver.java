@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class Solver {
 
-    class ManhattanComparator implements Comparator<TreeNode> {
+    private class ManhattanComparator implements Comparator<TreeNode> {
 
         @Override
         public int compare(TreeNode a, TreeNode b) {
@@ -22,7 +22,7 @@ public class Solver {
         }
     }
 
-    class HammingComparator implements Comparator<TreeNode> {
+    private class HammingComparator implements Comparator<TreeNode> {
 
         @Override
         public int compare(TreeNode a, TreeNode b) {
@@ -124,6 +124,7 @@ public class Solver {
             return openSet.isEmpty() && !hasGoal();
         }
 
+        @SuppressWarnings("unchecked")
         public ArrayList<Board> solution() {
             return (ArrayList<Board>)solution.clone();
         }
@@ -189,17 +190,17 @@ public class Solver {
         Comparator<TreeNode> cmp = new ManhattanComparator();
 
         GameTree initialGame = new GameTree(initial, cmp);
-        GameTree twinGame = new GameTree(initial.twinSwap(), cmp);
+        GameTree twinGame = new GameTree(initial.twin(), cmp);
 
         while (initialGame.next() && twinGame.next());
 
         if (initialGame.hasGoal()) {
             solution = initialGame.solution();
         } else if (initialGame.isUnsolvable() || twinGame.hasGoal()) {
-            return;
+
         } else {
             StdOut.println("twin is unsolvable");
-            while(initialGame.next());
+            while (initialGame.next());
             solution = initialGame.solution();
         }
     }
@@ -208,6 +209,7 @@ public class Solver {
 
     public int moves() { return solution.size() - 1; }
 
+    @SuppressWarnings("unchecked")
     public Iterable<Board> solution() {
         return (Iterable<Board>)solution.clone();
     }

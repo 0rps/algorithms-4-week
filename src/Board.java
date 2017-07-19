@@ -68,11 +68,6 @@ public class Board {
     public boolean isGoal()  { return hammingLength == 0; }
 
     public Board twin() {
-        return new Board(data);
-    }
-
-    public Board twinSwap() {
-
         Board result;
 
         if (iZero != 0) {
@@ -132,7 +127,7 @@ public class Board {
                     data[iZero][jZero] = data[newIZero][newJZero];
                     data[newIZero][newJZero] = 0;
 
-                    boardArray.add(this.twin());
+                    boardArray.add(new Board(data));
 
                     data[newIZero][newJZero] = data[iZero][jZero];
                     data[iZero][jZero] = 0;

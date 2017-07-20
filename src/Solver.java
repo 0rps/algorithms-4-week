@@ -1,44 +1,21 @@
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.StdOut;
-// import edu.princeton.cs.algs4.StdOut;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * Created by orps on 14.07.17.
  */
 public class Solver {
 
-    private class ManhattanComparator implements Comparator<TreeNode> {
+    private class TreeNode implements Comparable<TreeNode> {
 
-        @Override
-        public int compare(TreeNode a, TreeNode b) {
-            int aKey = a.manhattan();
-            int bKey = b.manhattan();
-            if (aKey < bKey)       return -1;
-            else if (bKey < aKey)  return 1;
-            else                   return 0;
-        }
-    }
-
-//    private class HammingComparator implements Comparator<TreeNode> {
-//
-//        @Override
-//        public int compare(TreeNode a, TreeNode b) {
-//            int aKey = a.hamming();
-//            int bKey = b.hamming();
-//            if (aKey < bKey)       return -1;
-//            else if (bKey < aKey)  return 1;
-//            else                   return 0;
-//        }
-//    }
-
-    private class TreeNode {
-
-        private Board board;
-        private int height;
-        private TreeNode parent;
+        private final Board board;
+        private final int height;
+        private final TreeNode parent;
 
         public TreeNode(Board board, int height) {
             this.board = board;
@@ -58,21 +35,26 @@ public class Solver {
 
         public int height() { return this.height; }
 
-        public int manhattan() { return board.manhattan() + height; }
+        public int metric() { return board.manhattan() + height; }
 
-        // public int hamming() { return board.hamming() + height; }
-
+        @Override
+        public int compareTo(TreeNode node) {
+            int aKey = metric();
+            int bKey = node.metric();
+            if (aKey < bKey)       return -1;
+            else if (bKey < aKey)  return 1;
+            else                   return 0;
+        }
     }
 
     private class GameTree {
 
-        private HashMap<Integer, List<Board>> closedSet = new HashMap<>();
-        private MinPQ<TreeNode> openSet;
+        private final MinPQ<TreeNode> openSet;
 
-        private ArrayList<Board> solution = new ArrayList<>();
+        private final ArrayList<Board> solution = new ArrayList<>();
 
-        public GameTree(Board initial, Comparator<TreeNode> cmp) {
-            openSet = new MinPQ<TreeNode>(cmp);
+        public GameTree(Board initial) {
+            openSet = new MinPQ<>();
             openSet.insert(new TreeNode(initial, 0));
 
             if (initial.isGoal()) {
@@ -87,30 +69,22 @@ public class Solver {
 
             TreeNode currentNode = openSet.delMin();
             Board currentBoard = currentNode.board();
-            addToClosedSet(currentBoard);
+            Board previousBoard = null;
+            if (currentNode.parent() != null) {
+                previousBoard = currentNode.parent().board();
+            }
 
-            Iterator<Board> neighbourIterator = currentBoard.neighbors().iterator();
-
-            while(neighbourIterator.hasNext()) {
-                Board neighbourBoard = neighbourIterator.next();
-                //StdOut.println("Candidate: \n" + neighbourBoard);
-                if ( inClosedSet(neighbourBoard) ) {
-                    //StdOut.println("Candidate alredy in closed\n");
+            for (Board neighbourBoard: currentBoard.neighbors()) {
+                if ( neighbourBoard.equals(previousBoard) ) {
                     continue;
                 }
 
                 TreeNode neighbourNode = new TreeNode(neighbourBoard, currentNode.height() + 1, currentNode);
-                TreeNode addedBoardKey = getFromOpenSet(neighbourBoard);
-
-                if ( addedBoardKey == null ) {
-                    if (neighbourNode.board().isGoal()) {
-                        makeSolution(neighbourNode);
-                        return false;
-                    }
-                    openSet.insert(neighbourNode);
-                } else if (addedBoardKey.height() > neighbourNode.height()) {
-                    openSet.insert(neighbourNode);
+                if (neighbourNode.board().isGoal()) {
+                    makeSolution(neighbourNode);
+                    return false;
                 }
+                openSet.insert(neighbourNode);
             }
 
             return true;
@@ -125,7 +99,10 @@ public class Solver {
         }
 
         public ArrayList<Board> solution() {
-            return (ArrayList<Board>)solution.clone();
+            ArrayList<Board> result = new ArrayList<>(solution.size());
+            result.addAll(solution);
+
+            return result;
         }
 
         private void makeSolution(TreeNode leaf) {
@@ -139,77 +116,45 @@ public class Solver {
             }
             Collections.reverse(solution);
         }
-
-        void addToClosedSet(Board key) {
-            List<Board> list = closedSet.get(key.manhattan());
-            if (list == null) {
-                list = new ArrayList<>();
-                closedSet.put(key.manhattan(), list);
-            }
-
-            list.add(key);
-        }
-
-        private boolean inClosedSet(Board key) {
-            List<Board> list = closedSet.get(key.manhattan());
-            if (list == null) {
-                return false;
-            }
-
-            Iterator<Board> iterator = list.iterator();
-            while(iterator.hasNext()) {
-                if (iterator.next().equals(key)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        TreeNode getFromOpenSet(Board key) {
-            Iterator<TreeNode> iterator = openSet.iterator();
-            while(iterator.hasNext()) {
-                TreeNode next = iterator.next();
-                if (next.board().equals(key)) {
-                    return next;
-                }
-            }
-
-            return null;
-        }
     }
 
-    private ArrayList<Board> solution = new ArrayList<>();
+    private final ArrayList<Board> solution;
 
     public Solver(Board initial) {
         if (initial == null) {
             throw new java.lang.IllegalArgumentException();
         }
 
-        Comparator<TreeNode> cmp = new ManhattanComparator();
+        GameTree initialGame = new GameTree(initial);
+        GameTree twinGame = new GameTree(initial.twin());
 
-        GameTree initialGame = new GameTree(initial, cmp);
-        GameTree twinGame = new GameTree(initial.twin(), cmp);
-
-        while (initialGame.next() && twinGame.next());
+        boolean flag = true; while (flag) { flag = initialGame.next() && twinGame.next(); }
 
         if (initialGame.hasGoal()) {
             solution = initialGame.solution();
         } else if (initialGame.isUnsolvable() || twinGame.hasGoal()) {
-
+            solution = null;
         } else {
-            // StdOut.println("twin is unsolvable");
-            while (initialGame.next());
+            flag = true; while (flag) { flag = initialGame.next(); };
             solution = initialGame.solution();
         }
     }
 
-    public boolean isSolvable() { return !solution.isEmpty(); }
+    public boolean isSolvable() { return solution != null; }
 
-    public int moves() { return solution.size() - 1; }
+    public int moves() {
+        if (isSolvable()) {
+            return solution.size() - 1;
+        }
+
+        return 0;
+    }
 
     public Iterable<Board> solution() {
-        return (Iterable<Board>)solution.clone();
+        if (solution == null) { return null;}
+        ArrayList<Board> result = new ArrayList<>(solution.size());
+        result.addAll(solution);
+        return result;
     }
 
     public static void main(String[] args) {

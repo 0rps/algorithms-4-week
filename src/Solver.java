@@ -16,10 +16,12 @@ public class Solver {
         private final Board board;
         private final int metric;
         private final TreeNode parent;
+        private final int height;
 
         public TreeNode(Board board, int height) {
             this.board = board;
             this.metric = board.manhattan() + height;
+            this.height = height;
             this.parent = null;
         }
 
@@ -27,13 +29,14 @@ public class Solver {
             this.parent = parent;
             this.board = board;
             this.metric = board.manhattan() + height;
+            this.height = height;
         }
 
         public Board board() { return board; }
 
         public TreeNode parent() { return parent; }
 
-        public int height() { return this.metric; }
+        public int height() { return this.height; }
 
         public int metric() { return this.metric; }
 

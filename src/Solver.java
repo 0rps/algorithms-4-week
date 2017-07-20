@@ -14,28 +14,28 @@ public class Solver {
     private class TreeNode implements Comparable<TreeNode> {
 
         private final Board board;
-        private final int height;
+        private final int metric;
         private final TreeNode parent;
 
         public TreeNode(Board board, int height) {
             this.board = board;
-            this.height = height;
+            this.metric = board.manhattan() + height;
             this.parent = null;
         }
 
         public TreeNode(Board board, int height, TreeNode parent) {
             this.parent = parent;
             this.board = board;
-            this.height = height;
+            this.metric = board.manhattan() + height;
         }
 
         public Board board() { return board; }
 
         public TreeNode parent() { return parent; }
 
-        public int height() { return this.height; }
+        public int height() { return this.metric; }
 
-        public int metric() { return board.manhattan() + height; }
+        public int metric() { return this.metric; }
 
         @Override
         public int compareTo(TreeNode node) {
